@@ -6,16 +6,17 @@
 <title>وزارة الداخلية - Velora RP</title>
 
 <style>
+/* 🌌 خلفية متحركة (مصححة 100%) */
 body{
 margin:0;
 font-family:Tahoma;
 color:#fff;
 background: linear-gradient(-45deg,#050814,#0b1220,#0a0e1a,#050816);
 background-size:400% 400%;
-animation:bg 12s ease infinite;
+animation:bgMove 10s ease infinite;
 }
 
-@keyframes bg{
+@keyframes bgMove{
 0%{background-position:0% 50%}
 50%{background-position:100% 50%}
 100%{background-position:0% 50%}
@@ -72,6 +73,7 @@ border-radius:8px;
 button{padding:8px;border:none;border-radius:8px;cursor:pointer}
 .primary{background:#2563eb;color:#fff}
 .warn{background:#f59e0b}
+.danger{background:#ef4444}
 
 .tag{
 display:inline-block;
@@ -84,7 +86,6 @@ font-size:12px;
 
 .section{display:none}
 .section.active{display:block}
-.hidden{display:none}
 </style>
 </head>
 
@@ -92,31 +93,14 @@ font-size:12px;
 
 <header>🏛️ وزارة الداخلية - Velora RP</header>
 
-<!-- LOGIN -->
-<div id="loginBox" class="card">
-<h3>🔐 تسجيل دخول</h3>
-<input id="pass" placeholder="الباسورد">
-<button class="primary" onclick="login()">دخول</button>
-</div>
-
-<div id="app" class="hidden">
-
-<div class="nav">
-<button class="active" onclick="show('army',this)">👮 العسكريين</button>
-<button onclick="show('points',this)">⭐ البوينتات</button>
-<button onclick="show('warns',this)">⚠ التحذيرات</button>
-<button onclick="show('notes',this)">📝 الملاحظات</button>
-<button onclick="show('logs',this)">📜 السجل</button>
-</div>
-
 <div class="container">
 
+<!-- إضافة -->
 <div class="card">
 <h3>➕ إضافة عسكري</h3>
 
 <input id="name" placeholder="اسم">
 <input id="gid" placeholder="Game ID">
-<input id="disc" placeholder="Discord">
 
 <select id="rank"></select>
 
@@ -130,6 +114,15 @@ font-size:12px;
 <button class="primary" onclick="add()">إضافة</button>
 </div>
 
+<!-- اختيار شخص للملاحظات -->
+<div class="card">
+<h3>📝 إضافة ملاحظة لشخص</h3>
+<select id="noteSelect"></select>
+<input id="noteText" placeholder="اكتب الملاحظة">
+<button class="primary" onclick="addNote()">إضافة ملاحظة</button>
+</div>
+
+<!-- بحث -->
 <div class="card">
 <h3>🔎 بحث</h3>
 <input id="search" placeholder="اسم">
@@ -137,13 +130,18 @@ font-size:12px;
 <div id="result"></div>
 </div>
 
+<div class="nav">
+<button class="active" onclick="show('army',this)">👮 العسكريين</button>
+<button onclick="show('points',this)">⭐ النقاط</button>
+<button onclick="show('warns',this)">⚠ التحذيرات</button>
+<button onclick="show('notes',this)">📝 الملاحظات</button>
+</div>
+
 <div id="army" class="section active"></div>
 <div id="points" class="section"></div>
 <div id="warns" class="section"></div>
 <div id="notes" class="section"></div>
-<div id="logs" class="section"></div>
 
-</div>
 </div>
 
 <!-- Firebase -->
@@ -165,28 +163,19 @@ appId:"1:681356163114:web:c40b8d7fed229ce8e7eb53"
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-/* دخول */
-function login(){
-if(pass.value==="0008"){
-loginBox.classList.add("hidden");
-app.classList.remove("hidden");
-}else alert("خطأ");
-}
-
 /* رتب */
 const ranks=[
 "فريق أول","فريق","لواء","عميد","عقيد","مقدم",
 "رائد","نقيب","ملازم أول","ملازم",
-"رئيس رقباء","رقيب أول","رقيب","وكيل رقيب","عريف","جندي أول","جندي"
+"رقيب أول","رقيب","وكيل رقيب","عريف","جندي أول","جندي"
 ];
 
 window.onload=()=>{
 rank.innerHTML=ranks.map(r=>`<option>${r}</option>`).join("");
 load();
-loadLogs();
 };
 
-/* تبويب */
+/* عرض */
 function show(id,btn){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
@@ -194,97 +183,130 @@ document.getElementById(id).classList.add("active");
 btn.classList.add("active");
 }
 
-/* سجل */
-function addLog(text){
-db.ref("logs").push({
-text,
-time:new Date().toLocaleString("ar")
-});
-}
-
 /* تحميل */
 function load(){
 db.ref("players").on("value",snap=>{
 let data=snap.val()||{};
 let arr=Object.entries(data).map(([id,v])=>({id,...v}));
+
 render(arr);
+fillSelect(arr);
 });
 }
 
 /* إضافة */
 function add(){
 
-let n=document.getElementById("name").value.trim();
-let g=document.getElementById("gid").value.trim();
-let d=document.getElementById("disc").value.trim();
-
 db.ref("players").push({
-name:n||"بدون اسم",
-gid:g||"بدون ID",
-disc:d||"لا يوجد",
-rank:document.getElementById("rank").value,
-unit:document.getElementById("unit").value,
+name:name.value||"بدون اسم",
+gid:gid.value||"بدون ID",
+rank:rank.value,
+unit:unit.value,
 points:0,
 warn:0,
 notes:[]
 });
 
-addLog("تم إضافة عسكري");
-
 name.value="";
 gid.value="";
-disc.value="";
 }
 
-/* ⭐ */
+/* ⭐ نقطة + ترقية */
 function addPoint(id){
 db.ref("players/"+id).once("value",snap=>{
 let p=snap.val();
 p.points++;
+
+if(p.points>=3){
+p.points=0;
+let i=ranks.indexOf(p.rank);
+if(i>0)p.rank=ranks[i-1];
+}
+
 db.ref("players/"+id).set(p);
-addLog("نقطة لـ: "+p.name);
 });
 }
 
-/* ⚠ */
+/* ⚠ تحذير + تنزيل */
 function addWarn(id){
 db.ref("players/"+id).once("value",snap=>{
 let p=snap.val();
 p.warn++;
 
-let note=prompt("اكتب ملاحظة:");
-if(note){
-if(!p.notes) p.notes=[];
-p.notes.push({
-text:note,
-time:new Date().toLocaleString("ar")
-});
+if(p.warn>=3){
+p.warn=0;
+let i=ranks.indexOf(p.rank);
+if(i<ranks.length-1)p.rank=ranks[i+1];
 }
 
 db.ref("players/"+id).set(p);
-addLog("تحذير لـ: "+p.name);
 });
 }
 
-/* 🧠 عرض + تعديل + حذف */
+/* 🗑 حذف نقطة */
+function removePoint(id){
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+p.points=Math.max(0,p.points-1);
+db.ref("players/"+id).set(p);
+});
+}
+
+/* 🗑 حذف تحذير */
+function removeWarn(id){
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+p.warn=Math.max(0,p.warn-1);
+db.ref("players/"+id).set(p);
+});
+}
+
+/* 📝 إضافة ملاحظة */
+function addNote(){
+
+let id=noteSelect.value;
+let text=noteText.value;
+
+if(!id||!text)return;
+
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+if(!p.notes)p.notes=[];
+
+p.notes.push({
+text:text,
+time:new Date().toLocaleString("ar")
+});
+
+db.ref("players/"+id).set(p);
+noteText.value="";
+});
+}
+
+/* تعبئة قائمة الملاحظات */
+function fillSelect(arr){
+noteSelect.innerHTML=arr.map(p=>
+`<option value="${p.id}">${p.name}</option>`
+).join("");
+}
+
+/* عرض */
 function render(d){
 
 army.innerHTML=d.map(p=>`
 <div class="card">
-
 <b>${p.name}</b><br>
 
 <div class="tag">🎖 ${p.rank}</div>
 <div class="tag">🚓 ${p.unit}</div>
-<div class="tag">🆔 ${p.gid}</div>
 
 <div class="tag">⭐ ${p.points}</div>
 <div class="tag">⚠ ${p.warn}</div>
 
-<button class="primary" onclick="edit('${p.id}')">✏ تعديل</button>
-<button class="warn" onclick="removePlayer('${p.id}')">🗑 حذف</button>
-<button onclick="addPoint('${p.id}')">⭐</button>
-<button onclick="addWarn('${p.id}')">⚠</button>
+<button class="primary" onclick="addPoint('${p.id}')">⭐</button>
+<button class="warn" onclick="addWarn('${p.id}')">⚠</button>
+<button class="danger" onclick="removePoint('${p.id}')">-⭐</button>
+<button class="danger" onclick="removeWarn('${p.id}')">-⚠</button>
 
 </div>
 `).join("");
@@ -306,54 +328,7 @@ ${(p.notes||[]).map(n=>`📝 ${n.text} - ${n.time}`).join("<br>")}
 
 }
 
-/* ✏ تعديل */
-function edit(id){
-
-db.ref("players/"+id).once("value",snap=>{
-let p=snap.val();
-
-let n=prompt("الاسم:",p.name);
-let g=prompt("Game ID:",p.gid);
-let d=prompt("Discord:",p.disc);
-let r=prompt("الرتبة:",p.rank);
-let u=prompt("الوحدة:",p.unit);
-
-p.name=n;
-p.gid=g;
-p.disc=d;
-p.rank=r;
-p.unit=u;
-
-db.ref("players/"+id).set(p);
-addLog("تم تعديل: "+p.name);
-});
-}
-
-/* 🗑 حذف */
-function removePlayer(id){
-
-if(!confirm("تأكيد الحذف؟")) return;
-
-db.ref("players/"+id).remove();
-addLog("تم حذف عسكري");
-}
-
-/* سجل */
-function loadLogs(){
-db.ref("logs").on("value",snap=>{
-let data=snap.val()||{};
-let arr=Object.values(data).reverse();
-
-logs.innerHTML=arr.map(l=>`
-<div class="card">
-📌 ${l.text}<br>
-<small>${l.time}</small>
-</div>
-`).join("");
-});
-
 /* بحث */
-}
 function find(){
 db.ref("players").once("value",snap=>{
 let d=Object.values(snap.val()||{});
@@ -365,7 +340,8 @@ result.innerHTML=p?`
 <div class="card">
 <b>${p.name}</b><br>
 🎖 ${p.rank}<br>
-🚓 ${p.unit}
+⭐ ${p.points}<br>
+⚠ ${p.warn}
 </div>
 `:"غير موجود";
 });
