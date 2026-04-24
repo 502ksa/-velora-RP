@@ -113,12 +113,14 @@ button{padding:8px;border:none;border-radius:8px;cursor:pointer}
 
 <script>
 
+/* الرتب */
 const ranks=[
 "فريق أول","فريق","لواء","عميد","عقيد","مقدم",
 "رائد","نقيب","ملازم أول","ملازم",
 "رئيس رقباء","رقيب أول","رقيب","وكيل رقيب","عريف","جندي أول","جندي"
 ];
 
+/* التخزين */
 function get(){return JSON.parse(localStorage.getItem("data")||"[]")}
 function save(d){localStorage.setItem("data",JSON.stringify(d))}
 
@@ -136,38 +138,44 @@ document.getElementById(id).classList.add("active");
 btn.classList.add("active");
 }
 
-/* ترقية وتنزيل */
+/* ترقية */
 function promote(p){
 let i=ranks.indexOf(p.rank);
 if(i>0) p.rank=ranks[i-1];
 p.points=0;
 }
 
+/* تنزيل */
 function demote(p){
 let i=ranks.indexOf(p.rank);
 if(i<ranks.length-1) p.rank=ranks[i+1];
 p.warn=0;
 }
 
-/* إضافة (مضمونة) */
+/* إضافة (مضمون 100%) */
 function add(){
 
 let d=get();
 
-let n=name.value.trim();
-let g=gid.value.trim();
+let nameEl=document.getElementById("name");
+let gidEl=document.getElementById("gid");
+let discEl=document.getElementById("disc");
 
-if(!n || !g){
+let nameVal=nameEl.value.trim();
+let gidVal=gidEl.value.trim();
+let discVal=discEl.value.trim();
+
+if(!nameVal || !gidVal){
 alert("لازم الاسم + Game ID");
 return;
 }
 
 d.push({
-name:n,
-gid:g,
-disc:disc.value||"لا يوجد",
-rank:rank.value,
-unit:unit.value,
+name:nameVal,
+gid:gidVal,
+disc:discVal||"لا يوجد",
+rank:document.getElementById("rank").value,
+unit:document.getElementById("unit").value,
 points:0,
 warn:0,
 notes:[]
@@ -175,14 +183,14 @@ notes:[]
 
 save(d);
 
-name.value="";
-gid.value="";
-disc.value="";
+nameEl.value="";
+gidEl.value="";
+discEl.value="";
 
 render();
 }
 
-/* بوينت */
+/* ⭐ بوينت */
 function addPoint(i){
 let d=get();
 d[i].points++;
@@ -195,7 +203,7 @@ save(d);
 render();
 }
 
-/* تحذير */
+/* ⚠ تحذير */
 function addWarn(i){
 let d=get();
 d[i].warn++;
@@ -216,21 +224,21 @@ let d=get();
 /* ترتيب حسب الرتبة */
 d.sort((a,b)=>ranks.indexOf(a.rank)-ranks.indexOf(b.rank));
 
-army.innerHTML=d.map(p=>`
+army.innerHTML=d.map((p,i)=>`
 <div class="card">
+
 <b>${p.name}</b><br>
 
 <div class="tag">🎖 ${p.rank}</div>
 <div class="tag">🚓 ${p.unit}</div>
 <div class="tag">🆔 ${p.gid}</div>
-<div class="tag">💬 ${p.disc}</div>
 
 <div class="tag">⭐ ${p.points}</div>
 <div class="tag">⚠ ${p.warn}</div>
 
-<div>
-<button class="primary" onclick="addPoint(${d.indexOf(p)})">⭐</button>
-<button class="warn" onclick="addWarn(${d.indexOf(p)})">⚠</button>
+<div style="margin-top:5px">
+<button class="primary" onclick="addPoint(${i})">⭐</button>
+<button class="warn" onclick="addWarn(${i})">⚠</button>
 </div>
 
 </div>
