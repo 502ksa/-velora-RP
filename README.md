@@ -87,10 +87,8 @@ button{padding:8px;border:none;border-radius:8px;cursor:pointer}
 <select id="rank"></select>
 
 <select id="unit">
-<option>Patrol</option>
-<option>Traffic</option>
-<option>SWAT</option>
-<option>Investigation</option>
+<option>قوات طوارئ</option>
+<option>أمن عام</option>
 </select>
 
 <button class="primary" onclick="add()">إضافة</button>
