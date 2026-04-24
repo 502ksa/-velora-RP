@@ -6,17 +6,16 @@
 <title>وزارة الداخلية - Velora RP</title>
 
 <style>
-/* 🌌 خلفية متحركة فخمة */
 body{
 margin:0;
 font-family:Tahoma;
 color:#fff;
 background: linear-gradient(-45deg,#050814,#0b1220,#0a0e1a,#050816);
 background-size:400% 400%;
-animation:moveBg 12s ease infinite;
+animation:bg 12s ease infinite;
 }
 
-@keyframes moveBg{
+@keyframes bg{
 0%{background-position:0% 50%}
 50%{background-position:100% 50%}
 100%{background-position:0% 50%}
@@ -52,7 +51,13 @@ cursor:pointer;
 
 .container{max-width:1100px;margin:auto;padding:12px}
 
-.card{background:#111827cc;padding:10px;margin:10px 0;border-radius:10px;backdrop-filter: blur(5px);}
+.card{
+background:#111827cc;
+padding:10px;
+margin:10px 0;
+border-radius:10px;
+backdrop-filter: blur(5px);
+}
 
 input,select{
 width:100%;
@@ -68,11 +73,17 @@ button{padding:8px;border:none;border-radius:8px;cursor:pointer}
 .primary{background:#2563eb;color:#fff}
 .warn{background:#f59e0b}
 
-.tag{display:inline-block;background:#1f2937;padding:4px 8px;border-radius:6px;margin:3px;font-size:12px}
+.tag{
+display:inline-block;
+background:#1f2937;
+padding:4px 8px;
+border-radius:6px;
+margin:3px;
+font-size:12px;
+}
 
 .section{display:none}
 .section.active{display:block}
-
 .hidden{display:none}
 </style>
 </head>
@@ -142,21 +153,21 @@ button{padding:8px;border:none;border-radius:8px;cursor:pointer}
 <script>
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBw9V3yMuiUa5MgurcxW2V1RCImC6eHcGQ",
-  authDomain: "velora-rp.firebaseapp.com",
-  databaseURL: "https://velora-rp-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "velora-rp",
-  storageBucket: "velora-rp.firebasestorage.app",
-  messagingSenderId: "681356163114",
-  appId: "1:681356163114:web:c40b8d7fed229ce8e7eb53"
+apiKey:"AIzaSyBw9V3yMuiUa5MgurcxW2V1RCImC6eHcGQ",
+authDomain:"velora-rp.firebaseapp.com",
+databaseURL:"https://velora-rp-default-rtdb.europe-west1.firebasedatabase.app",
+projectId:"velora-rp",
+storageBucket:"velora-rp.firebasestorage.app",
+messagingSenderId:"681356163114",
+appId:"1:681356163114:web:c40b8d7fed229ce8e7eb53"
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const db=firebase.database();
 
-/* 🔐 دخول */
+/* دخول */
 function login(){
-if(document.getElementById("pass").value==="0008"){
+if(pass.value==="0008"){
 loginBox.classList.add("hidden");
 app.classList.remove("hidden");
 }else alert("خطأ");
@@ -170,8 +181,7 @@ const ranks=[
 ];
 
 window.onload=()=>{
-document.getElementById("rank").innerHTML =
-ranks.map(r=>`<option>${r}</option>`).join("");
+rank.innerHTML=ranks.map(r=>`<option>${r}</option>`).join("");
 load();
 loadLogs();
 };
@@ -201,25 +211,17 @@ render(arr);
 });
 }
 
-/* 🚨 FIX نهائي للإضافة */
+/* إضافة */
 function add(){
 
-let n = (document.getElementById("name").value || "").trim();
-let g = (document.getElementById("gid").value || "").trim();
-let d = (document.getElementById("disc").value || "").trim();
-
-console.log("DEBUG NAME:", n);
-console.log("DEBUG ID:", g);
-
-if(n === "" || g === ""){
-alert("لازم الاسم + Game ID");
-return;
-}
+let n=document.getElementById("name").value.trim();
+let g=document.getElementById("gid").value.trim();
+let d=document.getElementById("disc").value.trim();
 
 db.ref("players").push({
-name:n,
-gid:g,
-disc:d || "لا يوجد",
+name:n||"بدون اسم",
+gid:g||"بدون ID",
+disc:d||"لا يوجد",
 rank:document.getElementById("rank").value,
 unit:document.getElementById("unit").value,
 points:0,
@@ -227,11 +229,11 @@ warn:0,
 notes:[]
 });
 
-addLog("تم إضافة عسكري: " + n);
+addLog("تم إضافة عسكري");
 
-document.getElementById("name").value="";
-document.getElementById("gid").value="";
-document.getElementById("disc").value="";
+name.value="";
+gid.value="";
+disc.value="";
 }
 
 /* ⭐ */
@@ -240,7 +242,7 @@ db.ref("players/"+id).once("value",snap=>{
 let p=snap.val();
 p.points++;
 db.ref("players/"+id).set(p);
-addLog("نقطة لـ: " + p.name);
+addLog("نقطة لـ: "+p.name);
 });
 }
 
@@ -260,15 +262,16 @@ time:new Date().toLocaleString("ar")
 }
 
 db.ref("players/"+id).set(p);
-addLog("تحذير لـ: " + p.name);
+addLog("تحذير لـ: "+p.name);
 });
 }
 
-/* عرض */
+/* 🧠 عرض + تعديل + حذف */
 function render(d){
 
 army.innerHTML=d.map(p=>`
 <div class="card">
+
 <b>${p.name}</b><br>
 
 <div class="tag">🎖 ${p.rank}</div>
@@ -278,8 +281,11 @@ army.innerHTML=d.map(p=>`
 <div class="tag">⭐ ${p.points}</div>
 <div class="tag">⚠ ${p.warn}</div>
 
-<button class="primary" onclick="addPoint('${p.id}')">⭐</button>
-<button class="warn" onclick="addWarn('${p.id}')">⚠</button>
+<button class="primary" onclick="edit('${p.id}')">✏ تعديل</button>
+<button class="warn" onclick="removePlayer('${p.id}')">🗑 حذف</button>
+<button onclick="addPoint('${p.id}')">⭐</button>
+<button onclick="addWarn('${p.id}')">⚠</button>
+
 </div>
 `).join("");
 
@@ -298,6 +304,38 @@ ${(p.notes||[]).map(n=>`📝 ${n.text} - ${n.time}`).join("<br>")}
 </div>
 `).join("");
 
+}
+
+/* ✏ تعديل */
+function edit(id){
+
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+
+let n=prompt("الاسم:",p.name);
+let g=prompt("Game ID:",p.gid);
+let d=prompt("Discord:",p.disc);
+let r=prompt("الرتبة:",p.rank);
+let u=prompt("الوحدة:",p.unit);
+
+p.name=n;
+p.gid=g;
+p.disc=d;
+p.rank=r;
+p.unit=u;
+
+db.ref("players/"+id).set(p);
+addLog("تم تعديل: "+p.name);
+});
+}
+
+/* 🗑 حذف */
+function removePlayer(id){
+
+if(!confirm("تأكيد الحذف؟")) return;
+
+db.ref("players/"+id).remove();
+addLog("تم حذف عسكري");
 }
 
 /* سجل */
@@ -319,17 +357,17 @@ logs.innerHTML=arr.map(l=>`
 function find(){
 db.ref("players").once("value",snap=>{
 let d=Object.values(snap.val()||{});
-let q=document.getElementById("search").value;
+let q=search.value;
 
 let p=d.find(x=>x.name.includes(q));
 
-document.getElementById("result").innerHTML = p ? `
+result.innerHTML=p?`
 <div class="card">
 <b>${p.name}</b><br>
 🎖 ${p.rank}<br>
 🚓 ${p.unit}
 </div>
-` : "غير موجود";
+`:"غير موجود";
 });
 }
 
