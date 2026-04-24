@@ -103,7 +103,7 @@ font-weight:bold;
 
 <!-- إضافة -->
 <div class="card">
-<h3>➕ إضافة مواطن</h3>
+<h3>➕ إضافة عسكري</h3>
 <input id="name" placeholder="الاسم">
 <input id="id" placeholder="ID">
 <select id="rank"></select>
@@ -119,7 +119,7 @@ font-weight:bold;
 <!-- بحث -->
 <div class="card">
 <h3>🔎 بحث الوزارة</h3>
-<input id="searchName" placeholder="اسم المواطن">
+<input id="searchName" placeholder="اسم العسكري">
 <button class="primary" onclick="find()">بحث</button>
 <div id="result"></div>
 </div>
