@@ -3,80 +3,151 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>وزارة الداخلية - Velora RP</title>
+<title>وزارة الداخلية</title>
 
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Tahoma,Arial;background:#0b0f17;color:#fff}
-header{background:#0f172a;padding:16px;text-align:center;border-bottom:2px solid #2563eb}
-.small{font-size:12px;opacity:.7}
-.nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;background:#0b1220;padding:10px}
-.nav button{padding:10px;border:none;border-radius:8px;background:#1f2937;color:#fff;cursor:pointer}
-.nav button.active{background:#2563eb}
-.container{max-width:1000px;margin:auto;padding:12px}
-.card{background:#111827;border:1px solid #1f2a44;border-radius:10px;padding:12px;margin:10px 0}
-input,textarea,select{width:100%;padding:10px;margin:6px 0;border:none;border-radius:8px;background:#0a0e14;color:#fff}
-button.primary{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:10px;cursor:pointer}
-button.danger{background:#ef4444}
-button.warn{background:#f59e0b}
-button.gray{background:#374151}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.tag{display:inline-block;padding:4px 8px;border-radius:6px;background:#1f2937;margin:2px;font-size:12px}
-.hidden{display:none}
-.list-item{border:1px solid #1f2a44;border-radius:8px;padding:10px;margin:8px 0}
+body{margin:0;font-family:Tahoma;background:#070b14;color:#fff}
+header{
+background:linear-gradient(90deg,#0f172a,#1e3a8a);
+padding:18px;text-align:center;
+font-size:22px;font-weight:bold;
+border-bottom:2px solid #2563eb;
+}
+
+.sub{font-size:12px;opacity:.7}
+
+.container{padding:12px;max-width:1100px;margin:auto}
+
+.card{
+background:#111827;
+border:1px solid #1f2a44;
+border-radius:12px;
+padding:12px;
+margin:10px 0;
+box-shadow:0 0 10px rgba(0,0,0,.4);
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:6px 0;
+background:#0a0e14;
+border:none;
+border-radius:8px;
+color:#fff;
+}
+
+button{
+padding:8px 10px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.primary{background:#2563eb;color:#fff}
+.warn{background:#f59e0b}
+.danger{background:#ef4444}
+.gray{background:#374151}
+
+.tag{
+display:inline-block;
+padding:4px 8px;
+border-radius:6px;
+margin:3px;
+font-size:12px;
+background:#1f2937;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:10px;
+}
+
+.log{
+font-size:12px;
+background:#000;
+padding:6px;
+margin:4px 0;
+border-radius:6px;
+opacity:.9;
+}
+
+.big{
+font-size:14px;
+font-weight:bold;
+}
+
 </style>
 </head>
 
 <body>
 
 <header>
-🏛️ وزارة الداخلية - Velora RP
-<div class="small">نظام إدارة اللاعبين</div>
+🏛️ وزارة الداخلية
+<div class="sub">نظام الرصد والمتابعة الرسمي</div>
 </header>
-
-<div class="nav">
-<button onclick="showPage('players')" class="active">👤 اللاعبين</button>
-<button onclick="showPage('warnings')">⚠ التحذيرات</button>
-<button onclick="showPage('infractions')">🚨 الإنذارات</button>
-<button onclick="showPage('notes')">📝 الملاحظات</button>
-<button onclick="logout()">🚪 خروج</button>
-</div>
 
 <div class="container">
 
-<div id="loginBox" class="card">
-<h3>🔐 دخول المسؤول</h3>
-<input id="pass" placeholder="الباسورد">
+<div class="card" id="loginBox">
+<h3>🔐 دخول الوزارة</h3>
+<input id="pass" placeholder="أدخل كلمة المرور">
 <button class="primary" onclick="login()">دخول</button>
-<p id="loginMsg"></p>
 </div>
 
-<div id="app" class="hidden">
+<div id="app" style="display:none">
 
+<div class="grid">
+
+<!-- إضافة -->
 <div class="card">
-<h3>➕ إضافة لاعب</h3>
-<input id="p_name" placeholder="الاسم">
-<input id="p_id" placeholder="Game ID">
-<input id="p_discord" placeholder="Discord">
-<select id="p_rank"></select>
-<button class="primary" onclick="addPlayer()">إضافة</button>
+<h3>➕ إضافة مواطن</h3>
+<input id="name" placeholder="الاسم">
+<input id="id" placeholder="ID">
+<select id="rank"></select>
+<select id="unit">
+<option>Patrol</option>
+<option>Traffic</option>
+<option>SWAT</option>
+<option>Investigation</option>
+</select>
+<button class="primary" onclick="add()">إضافة</button>
 </div>
 
+<!-- بحث -->
 <div class="card">
-<input id="search" placeholder="🔎 بحث..." oninput="render()">
+<h3>🔎 بحث الوزارة</h3>
+<input id="searchName" placeholder="اسم المواطن">
+<button class="primary" onclick="find()">بحث</button>
+<div id="result"></div>
 </div>
 
-<div id="playersPage"></div>
-<div id="warningsPage" class="hidden"></div>
-<div id="infractionsPage" class="hidden"></div>
-<div id="notesPage" class="hidden"></div>
+<!-- إحصائيات -->
+<div class="card">
+<h3>📊 إحصائيات الوزارة</h3>
+<div id="stats"></div>
+</div>
 
 </div>
+
+<!-- القائمة -->
+<div id="list"></div>
+
+<!-- السجل -->
+<div class="card">
+<h3>📜 سجل الوزارة</h3>
+<div id="logs"></div>
+</div>
+
+</div>
+
 </div>
 
 <script>
 
-const ADMIN_PASS="0008";
+const PASS="0008";
 
 const ranks=[
 "جندي","جندي أول","عريف","وكيل رقيب","رقيب","رقيب أول",
@@ -84,125 +155,164 @@ const ranks=[
 "عقيد","عميد","لواء","فريق","فريق أول"
 ];
 
-function login(){
-if(pass.value!==ADMIN_PASS){loginMsg.innerText="❌ خطأ";return;}
-localStorage.setItem("logged","1");
-loginBox.classList.add("hidden");
-app.classList.remove("hidden");
-initRanks();
-render();
-}
-
-window.onload=()=>{
-if(localStorage.getItem("logged")){
-loginBox.classList.add("hidden");
-app.classList.remove("hidden");
-initRanks();
-render();
-}else{
-initRanks();
-}
+const colors={
+"جندي":"#6b7280",
+"عريف":"#22c55e",
+"رقيب":"#f59e0b",
+"ملازم":"#3b82f6",
+"نقيب":"#a855f7",
+"مقدم":"#eab308",
+"عقيد":"#ef4444",
+"لواء":"#111827",
+"فريق أول":"#000000"
 };
 
-function initRanks(){
-p_rank.innerHTML=ranks.map(r=>`<option>${r}</option>`).join("");
+function login(){
+if(pass.value!==PASS)return alert("خطأ");
+loginBox.style.display="none";
+app.style.display="block";
+init();
+render();
 }
 
-function logout(){
-localStorage.removeItem("logged");
-location.reload();
+function init(){
+rank.innerHTML=ranks.map(r=>`<option>${r}</option>`).join("");
 }
 
-function showPage(p){
-["players","warnings","infractions","notes"].forEach(x=>{
-document.getElementById(x+"Page").classList.add("hidden");
-});
-document.getElementById(p+"Page").classList.remove("hidden");
+function get(){return JSON.parse(localStorage.getItem("data")||"[]")}
+function save(d){localStorage.setItem("data",JSON.stringify(d))}
+
+function log(t){
+let l=JSON.parse(localStorage.getItem("logs")||"[]");
+l.unshift(new Date().toLocaleString()+" - "+t);
+localStorage.setItem("logs",JSON.stringify(l));
 }
 
-function getData(){
-return JSON.parse(localStorage.getItem("players")||"[]");
-}
-
-function saveData(d){
-localStorage.setItem("players",JSON.stringify(d));
-}
-
-function addPlayer(){
-let d=getData();
-if(!p_name.value||!p_id.value)return alert("عبي البيانات");
-
+function add(){
+let d=get();
 d.push({
-name:p_name.value,
-id:p_id.value,
-discord:p_discord.value,
-rank:p_rank.value,
-warnings:[],
-infractions:[],
-notes:[]
+name:name.value,
+id:id.value,
+rank:rank.value,
+unit:unit.value,
+points:0,
+warn:0
 });
-
-saveData(d);
-p_name.value="";p_id.value="";p_discord.value="";
+log("إضافة "+name.value);
+save(d);
 render();
 }
 
 function render(){
-let data=getData();
-let q=(search.value||"").toLowerCase();
+let d=get();
 
-data.sort((a,b)=>ranks.indexOf(b.rank)-ranks.indexOf(a.rank));
+d.sort((a,b)=>ranks.indexOf(b.rank)-ranks.indexOf(a.rank));
 
-playersPage.innerHTML=data.filter(p=>p.name.toLowerCase().includes(q)).map((p,i)=>`
-<div class="list-item">
-<b>${p.name}</b>
-<div class="tag">${p.id}</div>
-<div class="tag">${p.discord}</div>
-<div class="tag">🎖 ${p.rank}</div>
-<div>⚠ ${p.warnings.length} | 🚨 ${p.infractions.length}</div>
+list.innerHTML=d.map((p,i)=>`
+<div class="card">
+<b class="big">${p.name}</b>
+<div class="tag" style="background:${colors[p.rank]||'#1f2937'}">${p.rank}</div>
+<div class="tag">${p.unit}</div>
+<div class="tag">⭐ ${p.points}</div>
+<div class="tag">⚠ ${p.warn}</div>
 
-<div class="row">
-<button class="warn" onclick="addWarning(${i})">تحذير</button>
-<button class="danger" onclick="addInfraction(${i})">إنذار</button>
-<button class="gray" onclick="addNote(${i})">ملاحظة</button>
-<button class="danger" onclick="removePlayer(${i})">حذف</button>
+<div>
+<button class="primary" onclick="point(${i})">⭐ بوينت</button>
+<button class="warn" onclick="warn(${i})">⚠ تحذير</button>
+<button class="gray" onclick="edit(${i})">✏️ تعديل</button>
 </div>
 </div>
 `).join("");
 
-warningsPage.innerHTML=data.map(p=>`
-<div class="list-item"><b>${p.name}</b>
-${p.warnings.map(w=>`<div class="tag">⚠ ${w}</div>`).join("")}
-</div>`).join("");
+/* stats */
+let s={};
+d.forEach(x=>s[x.rank]=(s[x.rank]||0)+1);
 
-infractionsPage.innerHTML=data.map(p=>`
-<div class="list-item"><b>${p.name}</b>
-${p.infractions.map(w=>`<div class="tag">🚨 ${w}</div>`).join("")}
-</div>`).join("");
+stats.innerHTML=
+"👥 عدد المواطنين: "+d.length+"<br><br>"+
+Object.keys(s).map(k=>k+" : "+s[k]).join("<br>");
 
-notesPage.innerHTML=data.map(p=>`
-<div class="list-item"><b>${p.name}</b>
-${p.notes.map(n=>`<div class="tag">📝 ${n}</div>`).join("")}
-</div>`).join("");
+/* logs */
+let l=JSON.parse(localStorage.getItem("logs")||"[]");
+logs.innerHTML=l.slice(0,20).map(x=>`<div class="log">${x}</div>`).join("");
 }
 
-function addWarning(i){
-let t=prompt("سبب التحذير");if(!t)return;
-let d=getData();d[i].warnings.push(t);saveData(d);render();
+/* بحث */
+function find(){
+let d=get();
+let p=d.find(x=>x.name.includes(searchName.value));
+if(!p)return result.innerHTML="❌ غير موجود";
+
+let i=d.indexOf(p);
+
+result.innerHTML=`
+<div class="card">
+<b>${p.name}</b>
+<div>${p.rank} - ${p.unit}</div>
+
+<button class="primary" onclick="point(${i})">⭐ بوينت</button>
+<button class="warn" onclick="warn(${i})">⚠ تحذير</button>
+<button onclick="edit(${i})">✏️ تعديل</button>
+</div>
+`;
 }
 
-function addInfraction(i){
-let t=prompt("سبب الإنذار");if(!t)return;
-let d=getData();d[i].infractions.push(t);saveData(d);render();
+/* بوينت */
+function point(i){
+let d=get();
+d[i].points++;
+
+log("بوينت "+d[i].name);
+
+if(d[i].points>=3){
+let idx=ranks.indexOf(d[i].rank);
+if(idx<ranks.length-1){
+d[i].rank=ranks[idx+1];
+log("ترقية "+d[i].name);
+}
+d[i].points=0;
 }
 
-function addNote(i){
-let t=prompt("ملاحظة");if(!t)return;
-let d=getData();d[i].notes.push(t);saveData(d);render();
+save(d);render();find();
 }
 
-function removePlayer(i){
-let d=getData();d.splice(i,1);saveData(d);render();
+/* تحذير */
+function warn(i){
+let d=get();
+d[i].warn++;
+
+log("تحذير "+d[i].name);
+
+if(d[i].warn>=3){
+let idx=ranks.indexOf(d[i].rank);
+if(idx>0){
+d[i].rank=ranks[idx-1];
+log("تنزيل "+d[i].name);
+}
+d[i].warn=0;
+}
+
+save(d);render();find();
+}
+
+/* تعديل */
+function edit(i){
+let d=get();
+let p=d[i];
+
+let n=prompt("الاسم",p.name);
+if(n===null)return;
+
+let u=prompt("يونت",p.unit);
+let r=prompt("رقم الرتبة:\n"+ranks.map((x,i)=>i+"-"+x).join("\n"),ranks.indexOf(p.rank));
+
+p.name=n;
+p.unit=u;
+p.rank=ranks[r];
+
+log("تعديل "+p.name);
+
+save(d);render();find();
 }
 
 </script>
