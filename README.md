@@ -15,7 +15,7 @@ header{background:#0f172a;padding:16px;text-align:center;font-size:22px;font-wei
 .card{background:#111827;padding:10px;margin:10px 0;border-radius:10px}
 input,select{width:100%;padding:10px;margin:5px 0;background:#0a0e14;color:#fff;border:none;border-radius:8px}
 button{padding:6px 8px;border:none;border-radius:6px;cursor:pointer}
-.primary{background:#2563eb;color:#fff}
+.primary{background:#2563eb}
 .warn{background:#f59e0b}
 .danger{background:#ef4444}
 .section{display:none}
@@ -37,22 +37,20 @@ button{padding:6px 8px;border:none;border-radius:6px;cursor:pointer}
 
 <div class="container">
 
+<!-- العسكريين -->
 <div id="army" class="section active">
 
 <div class="card">
 <h3>➕ إضافة عسكري</h3>
 <input id="name" placeholder="اسم">
 <input id="gid" placeholder="Game ID">
-
 <select id="rank"></select>
-
 <select id="unit">
 <option>قوات طوارئ</option>
 <option>أمن عام</option>
 <option>المرور</option>
 <option>التحقيقات</option>
 </select>
-
 <button class="primary" onclick="add()">إضافة</button>
 </div>
 
@@ -62,6 +60,7 @@ button{padding:6px 8px;border:none;border-radius:6px;cursor:pointer}
 <div id="points" class="section"></div>
 <div id="warns" class="section"></div>
 
+<!-- الملاحظات -->
 <div id="notes" class="section">
 
 <div class="card">
@@ -83,7 +82,7 @@ button{padding:6px 8px;border:none;border-radius:6px;cursor:pointer}
 <script>
 
 const firebaseConfig = {
-apiKey:"AIzaSy...",
+apiKey:"AIzaSyBw9V3yMuiUa5MgurcxW2V1RCImC6eHcGQ",
 authDomain:"velora-rp.firebaseapp.com",
 databaseURL:"https://velora-rp-default-rtdb.europe-west1.firebasedatabase.app",
 projectId:"velora-rp",
@@ -102,7 +101,7 @@ const ranks=[
 ];
 
 window.onload=()=>{
-rank.innerHTML=ranks.map(r=>`<option>${r}</option>`).join("");
+document.getElementById("rank").innerHTML=ranks.map(r=>`<option>${r}</option>`).join("");
 load();
 };
 
@@ -128,10 +127,12 @@ fillSelect(arr);
 });
 }
 
-/* إضافة */
+/* إضافة (FIX) */
 function add(){
-let n=name.value.trim();
-let g=gid.value.trim();
+let n=document.getElementById("name").value.trim();
+let g=document.getElementById("gid").value.trim();
+let r=document.getElementById("rank").value;
+let u=document.getElementById("unit").value;
 
 if(!n) n="بدون اسم";
 if(!g) g="بدون ID";
@@ -139,15 +140,15 @@ if(!g) g="بدون ID";
 db.ref("players").push({
 name:n,
 gid:g,
-rank:rank.value,
-unit:unit.value,
+rank:r,
+unit:u,
 points:0,
 warn:0,
 notes:[]
 });
 
-name.value="";
-gid.value="";
+document.getElementById("name").value="";
+document.getElementById("gid").value="";
 }
 
 /* نقاط */
@@ -160,6 +161,14 @@ p.points=0;
 let i=ranks.indexOf(p.rank);
 if(i>0)p.rank=ranks[i-1];
 }
+db.ref("players/"+id).set(p);
+});
+}
+
+function removePoint(id){
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+if(p.points>0)p.points--;
 db.ref("players/"+id).set(p);
 });
 }
@@ -178,48 +187,74 @@ db.ref("players/"+id).set(p);
 });
 }
 
-/* 👮 العسكريين (رجعنا التعديل والحذف فقط) */
+function removeWarn(id){
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+if(p.warn>0)p.warn--;
+db.ref("players/"+id).set(p);
+});
+}
+
+/* العسكريين */
 function renderArmy(d){
 armyList.innerHTML=d.map(p=>`
 <div class="card">
-
 <b>${p.name}</b><br>
-
 <span class="smallTag">🆔 ${p.gid}</span>
 <span class="smallTag">🎖 ${p.rank}</span>
 <span class="smallTag">🚓 ${p.unit}</span>
-
 <br><br>
-
 <button class="primary" onclick="addPoint('${p.id}')">⭐</button>
 <button class="warn" onclick="addWarn('${p.id}')">⚠</button>
-
 <button class="primary" onclick="editPlayer('${p.id}')">✏ تعديل</button>
 <button class="danger" onclick="deletePlayer('${p.id}')">🗑 حذف</button>
-
 </div>
 `).join("");
 }
 
-/* نقاط */
+/* ⭐ النقاط (فلترة صح) */
 function renderPoints(d){
-points.innerHTML=d.map(p=>`
-<div class="card">${p.name} ⭐ ${p.points}</div>
+
+let filtered = d.filter(p => Number(p.points) > 0);
+
+if(filtered.length === 0){
+points.innerHTML = "<div class='card'>لا يوجد نقاط</div>";
+return;
+}
+
+points.innerHTML = filtered.map(p=>`
+<div class="card">
+<b>${p.name}</b> ⭐ ${p.points}
+<br>
+<button class="primary" onclick="addPoint('${p.id}')">➕</button>
+<button class="danger" onclick="removePoint('${p.id}')">➖</button>
+</div>
 `).join("");
 }
 
-/* تحذيرات */
+/* ⚠ التحذيرات (فلترة صح) */
 function renderWarns(d){
-warns.innerHTML=d.map(p=>`
-<div class="card">${p.name} ⚠ ${p.warn}</div>
+
+let filtered = d.filter(p => Number(p.warn) > 0);
+
+if(filtered.length === 0){
+warns.innerHTML = "<div class='card'>لا يوجد تحذيرات</div>";
+return;
+}
+
+warns.innerHTML = filtered.map(p=>`
+<div class="card">
+<b>${p.name}</b> ⚠ ${p.warn}
+<br>
+<button class="warn" onclick="addWarn('${p.id}')">➕</button>
+<button class="danger" onclick="removeWarn('${p.id}')">➖</button>
+</div>
 `).join("");
 }
 
-/* ملاحظات */
+/* الملاحظات */
 function renderNotes(d){
-notesList.innerHTML=d
-.filter(p=>p.notes&&p.notes.length>0)
-.map(p=>`
+notesList.innerHTML=d.filter(p=>p.notes&&p.notes.length>0).map(p=>`
 <div class="card">
 <b>${p.name}</b><br>
 ${p.notes.map((n,i)=>`
@@ -233,26 +268,6 @@ ${p.notes.map((n,i)=>`
 `).join("");
 }
 
-/* تعديل عسكري */
-function editPlayer(id){
-db.ref("players/"+id).once("value",snap=>{
-let p=snap.val();
-let n=prompt("اسم",p.name);
-let g=prompt("ID",p.gid);
-if(n) p.name=n;
-if(g) p.gid=g;
-db.ref("players/"+id).set(p);
-});
-}
-
-/* حذف عسكري */
-function deletePlayer(id){
-if(confirm("حذف العسكري؟")){
-db.ref("players/"+id).remove();
-}
-}
-
-/* ملاحظات */
 function addNote(){
 let id=noteSelect.value;
 let text=noteText.value.trim();
@@ -281,6 +296,25 @@ let p=snap.val();
 p.notes.splice(i,1);
 db.ref("players/"+pid).set(p);
 });
+}
+
+/* تعديل عسكري */
+function editPlayer(id){
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+let n=prompt("اسم",p.name);
+let g=prompt("ID",p.gid);
+if(n) p.name=n;
+if(g) p.gid=g;
+db.ref("players/"+id).set(p);
+});
+}
+
+/* حذف عسكري */
+function deletePlayer(id){
+if(confirm("حذف العسكري؟")){
+db.ref("players/"+id).remove();
+}
 }
 
 function fillSelect(d){
