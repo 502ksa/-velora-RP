@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -7,78 +6,21 @@
 <title>وزارة الداخلية - Velora RP</title>
 
 <style>
-body{
-margin:0;
-font-family:Tahoma;
-color:#fff;
-background:#0a0f1e;
-}
-
-header{
-background:#0f172a;
-padding:16px;
-text-align:center;
-font-size:22px;
-font-weight:bold;
-}
-
-.nav{
-display:flex;
-gap:6px;
-justify-content:center;
-background:#0b1220;
-padding:10px;
-flex-wrap:wrap;
-position:sticky;
-top:0;
-}
-
-.nav button{
-padding:8px;
-border:none;
-border-radius:8px;
-background:#1f2937;
-color:#fff;
-cursor:pointer;
-}
-
+body{margin:0;font-family:Tahoma;color:#fff;background:#0a0f1e;}
+header{background:#0f172a;padding:16px;text-align:center;font-size:22px;font-weight:bold;}
+.nav{display:flex;gap:6px;justify-content:center;background:#0b1220;padding:10px;flex-wrap:wrap;position:sticky;top:0;}
+.nav button{padding:8px;border:none;border-radius:8px;background:#1f2937;color:#fff;cursor:pointer;}
 .nav button.active{background:#2563eb}
-
 .container{max-width:1100px;margin:auto;padding:12px}
-
-.card{
-background:#111827;
-padding:10px;
-margin:10px 0;
-border-radius:10px;
-}
-
-input,select{
-width:100%;
-padding:10px;
-margin:5px 0;
-background:#0a0e14;
-color:#fff;
-border:none;
-border-radius:8px;
-}
-
+.card{background:#111827;padding:10px;margin:10px 0;border-radius:10px}
+input,select{width:100%;padding:10px;margin:5px 0;background:#0a0e14;color:#fff;border:none;border-radius:8px}
 button{padding:6px 8px;border:none;border-radius:6px;cursor:pointer}
 .primary{background:#2563eb;color:#fff}
 .warn{background:#f59e0b}
 .danger{background:#ef4444}
-
 .section{display:none}
 .section.active{display:block}
-
-.smallTag{
-display:inline-block;
-background:#1f2937;
-padding:3px 6px;
-border-radius:6px;
-font-size:12px;
-margin:2px;
-}
+.smallTag{display:inline-block;background:#1f2937;padding:3px 6px;border-radius:6px;font-size:12px;margin:2px}
 </style>
 </head>
 
@@ -99,7 +41,6 @@ margin:2px;
 
 <div class="card">
 <h3>➕ إضافة عسكري</h3>
-
 <input id="name" placeholder="اسم">
 <input id="gid" placeholder="Game ID">
 
@@ -121,12 +62,10 @@ margin:2px;
 <div id="points" class="section"></div>
 <div id="warns" class="section"></div>
 
-<!-- الملاحظات -->
 <div id="notes" class="section">
 
 <div class="card">
 <h3>➕ إضافة ملاحظة</h3>
-
 <select id="noteSelect"></select>
 <input id="noteText" placeholder="اكتب الملاحظة">
 <button class="primary" onclick="addNote()">إضافة</button>
@@ -144,7 +83,7 @@ margin:2px;
 <script>
 
 const firebaseConfig = {
-apiKey:"AIzaSyBw9V3yMuiUa5MgurcxW2V1RCImC6eHcGQ",
+apiKey:"AIzaSy...",
 authDomain:"velora-rp.firebaseapp.com",
 databaseURL:"https://velora-rp-default-rtdb.europe-west1.firebasedatabase.app",
 projectId:"velora-rp",
@@ -189,11 +128,17 @@ fillSelect(arr);
 });
 }
 
-/* ➕ إضافة */
+/* إصلاح الاسم */
 function add(){
+let n=name.value.trim();
+let g=gid.value.trim();
+
+if(!n) n="بدون اسم";
+if(!g) g="بدون ID";
+
 db.ref("players").push({
-name:name.value||"بدون اسم",
-gid:gid.value||"بدون ID",
+name:n,
+gid:g,
 rank:rank.value,
 unit:unit.value,
 points:0,
@@ -205,7 +150,7 @@ name.value="";
 gid.value="";
 }
 
-/* ⭐ */
+/* نقاط */
 function addPoint(id){
 db.ref("players/"+id).once("value",snap=>{
 let p=snap.val();
@@ -219,7 +164,15 @@ db.ref("players/"+id).set(p);
 });
 }
 
-/* ⚠ */
+function removePoint(id){
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+if(p.points>0)p.points--;
+db.ref("players/"+id).set(p);
+});
+}
+
+/* تحذيرات */
 function addWarn(id){
 db.ref("players/"+id).once("value",snap=>{
 let p=snap.val();
@@ -233,7 +186,74 @@ db.ref("players/"+id).set(p);
 });
 }
 
-/* 📝 إضافة ملاحظة */
+function removeWarn(id){
+db.ref("players/"+id).once("value",snap=>{
+let p=snap.val();
+if(p.warn>0)p.warn--;
+db.ref("players/"+id).set(p);
+});
+}
+
+/* عرض العسكريين */
+function renderArmy(d){
+armyList.innerHTML=d.map(p=>`
+<div class="card">
+<b>${p.name}</b><br>
+<span class="smallTag">🆔 ${p.gid}</span>
+<span class="smallTag">🎖 ${p.rank}</span>
+<span class="smallTag">🚓 ${p.unit}</span>
+<br><br>
+<button class="primary" onclick="addPoint('${p.id}')">⭐</button>
+<button class="warn" onclick="addWarn('${p.id}')">⚠</button>
+</div>
+`).join("");
+}
+
+/* ⭐ عرض النقاط (فلترة + حذف) */
+function renderPoints(d){
+points.innerHTML=d
+.filter(p=>p.points>0)
+.map(p=>`
+<div class="card">
+${p.name} ⭐ ${p.points}
+<br>
+<button class="danger" onclick="removePoint('${p.id}')">➖ حذف نقطة</button>
+</div>
+`).join("");
+}
+
+/* ⚠ عرض التحذيرات */
+function renderWarns(d){
+warns.innerHTML=d
+.filter(p=>p.warn>0)
+.map(p=>`
+<div class="card">
+${p.name} ⚠ ${p.warn}
+<br>
+<button class="danger" onclick="removeWarn('${p.id}')">➖ حذف تحذير</button>
+</div>
+`).join("");
+}
+
+/* 📝 الملاحظات (مثل قبل) */
+function renderNotes(d){
+notesList.innerHTML=d
+.filter(p=>p.notes&&p.notes.length>0)
+.map(p=>`
+<div class="card">
+<b>${p.name}</b><br>
+${p.notes.map((n,i)=>`
+<div>
+📝 ${n.text}
+<button onclick="editNote('${p.id}',${i})">✏</button>
+<button onclick="deleteNote('${p.id}',${i})">🗑</button>
+</div>
+`).join("")}
+</div>
+`).join("");
+}
+
+/* ملاحظات */
 function addNote(){
 let id=noteSelect.value;
 let text=noteText.value.trim();
@@ -242,126 +262,30 @@ if(!id||!text)return;
 db.ref("players/"+id).once("value",snap=>{
 let p=snap.val();
 if(!p.notes)p.notes=[];
-
-p.notes.push({
-text:text,
-time:new Date().toLocaleString("ar")
-});
-
+p.notes.push({text});
 db.ref("players/"+id).set(p);
 noteText.value="";
 });
 }
 
-function fillSelect(d){
-noteSelect.innerHTML=d.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
-}
-
-/* 👮 العسكريين */
-function renderArmy(d){
-armyList.innerHTML=d.map(p=>`
-<div class="card">
-
-<b>${p.name}</b><br>
-
-<span class="smallTag">🆔 ${p.gid}</span>
-<span class="smallTag">🎖 ${p.rank}</span>
-<span class="smallTag">🚓 ${p.unit}</span>
-
-<br><br>
-
-<button class="primary" onclick="addPoint('${p.id}')">⭐</button>
-<button class="warn" onclick="addWarn('${p.id}')">⚠</button>
-
-<button class="primary" onclick="editPlayer('${p.id}')">✏ تعديل</button>
-<button class="danger" onclick="deletePlayer('${p.id}')">🗑 حذف</button>
-
-</div>
-`).join("");
-}
-
-function renderPoints(d){
-points.innerHTML=d.map(p=>`
-<div class="card">${p.name} ⭐ ${p.points}</div>
-`).join("");
-}
-
-function renderWarns(d){
-warns.innerHTML=d.map(p=>`
-<div class="card">${p.name} ⚠ ${p.warn}</div>
-`).join("");
-}
-
-/* 📝 FIX: عرض الملاحظة + تعديل + حذف */
-function renderNotes(d){
-notesList.innerHTML=d
-.filter(p=>p.notes && p.notes.length>0)
-.map(p=>`
-<div class="card">
-
-<b>${p.name}</b><br>
-
-${p.notes.map((n,i)=>`
-<div style="background:#0b1220;padding:6px;margin:5px 0;border-radius:6px">
-
-📝 ${n.text}<br>
-⏱ ${n.time}<br>
-
-<button class="primary" onclick="editNote('${p.id}',${i})">✏ تعديل</button>
-<button class="danger" onclick="deleteNote('${p.id}',${i})">🗑 حذف</button>
-
-</div>
-`).join("")}
-
-</div>
-`).join("");
-}
-
-/* تعديل ملاحظة */
 function editNote(pid,i){
 db.ref("players/"+pid).once("value",snap=>{
 let p=snap.val();
-
-let newText=prompt("تعديل الملاحظة",p.notes[i].text);
-
-if(newText){
-p.notes[i].text=newText;
-db.ref("players/"+pid).set(p);
-}
+let t=prompt("تعديل",p.notes[i].text);
+if(t){p.notes[i].text=t;db.ref("players/"+pid).set(p);}
 });
 }
 
-/* حذف ملاحظة */
 function deleteNote(pid,i){
 db.ref("players/"+pid).once("value",snap=>{
 let p=snap.val();
-
 p.notes.splice(i,1);
-
 db.ref("players/"+pid).set(p);
 });
 }
 
-/* تعديل عسكري */
-function editPlayer(id){
-db.ref("players/"+id).once("value",snap=>{
-let p=snap.val();
-
-let n=prompt("اسم",p.name);
-let g=prompt("ID",p.gid);
-
-if(n) p.name=n;
-if(g) p.gid=g;
-
-db.ref("players/"+id).set(p);
-});
-}
-
-/* حذف عسكري */
-function deletePlayer(id){
-if(confirm("حذف العسكري؟")){
-db.ref("players/"+id).remove();
-}
+function fillSelect(d){
+noteSelect.innerHTML=d.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
 }
 
 </script>
