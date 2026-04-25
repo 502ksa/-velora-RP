@@ -50,7 +50,7 @@ button{padding:6px 8px;border:none;border-radius:6px;cursor:pointer}
 <select id="unit">
 <option>أمن عام</option>
 <option>قوات الطوارئ</option>
-<option>SWAT</option>
+<option>SSF</option>
 </select>
 
 <button class="primary" onclick="add()">إضافة</button>
